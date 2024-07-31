@@ -1,0 +1,237 @@
+\documentclass[11pt]{article}
+\usepackage[hmargin=1in,vmargin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{amssymb,amsfonts,url,sectsty,framed,tcolorbox,framed}
+\newcommand{\pf}{{\bf Proof: }}
+\newtheorem{theorem}{Theorem}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{enumitem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\usepackage{enumerate}
+\newtheorem{remark}{Remark}
+\usepackage{graphicx} % Required for including images
+\usepackage{float} % Required for H placement option
+\newcommand{\qed}{\hfill \rule{2mm}{2mm}}
+\newcommand\myeq{\stackrel{\mathclap{\normalfont\text{Verify?}}}{=}}
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\noindent
+\rule{\textwidth}{1pt}
+\begin{center}
+{\bf [CS304] Introduction to Cryptography and Network Security}
+\end{center}
+Course Instructor: Dr. Dibyendu Roy \hfill Winter 2023-2024\\
+Scribed by: Raghav Agiwal (202151124) \hfill Lecture (Week 12)
+\\
+\rule{\textwidth}{1pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%write here
+\setcounter{section}
+
+\section{Signal Protocol Overview}
+The Signal Protocol is a comprehensive framework designed to provide end-to-end encryption for secure messaging. It encompasses several cryptographic components and procedures to ensure confidentiality, integrity, and authenticity of communication.
+
+\begin{itemize}
+    \item \textbf{Objective:} Ensure secure and private communication between users.
+    \item \textbf{End-to-End Encryption:} Messages are encrypted on the sender's device and can only be decrypted by the intended recipient's device.
+    \item \textbf{Authentication:} Validates the identity of communicating parties and ensures message integrity.
+    \item \textbf{Forward Secrecy:} Ensures that even if long-term keys are compromised, past messages remain secure.
+\end{itemize}
+
+\section{Main Cryptographic Modules}
+
+\subsection{X3DH (Extended Triple Diffie-Hellman)}
+\textbf{Purpose:} Key agreement protocol for secure communication initiation.
+\begin{itemize}
+    \item \textbf{Key Generation:} 
+    \begin{align*}
+        & \text{Alice:} & & \text{Bob:} \\
+        & \text{IKA, nIA} & & \text{IKB, nIB} \\
+        & \text{SPKA, nSP A} & & \text{SPKB, nSP B} \\
+        & & & \text{(signed prekey pairs)} \\
+        & \text{Shared Secret:} & & \text{Shared Secret:} \\
+        & \text{SK\_AB = DH(IKA, nIB) || DH(IKA, nIBP) ||} \\
+        & \quad \text{DH(IKA, nSP B) || DH(IKA, nSP BP)} & & \text{SK\_BA = DH(IKB, nIA) || DH(IKB, nIAP) ||} \\
+        & & & \quad \text{DH(IKB, nSP A) || DH(IKB, nSP AP)} \\
+        & \text{Master Key Derivation} & & \text{Master Key Derivation}
+    \end{align*}
+\end{itemize}
+
+\subsection{ECDSA (Elliptic Curve Digital Signature Algorithm)}
+\textbf{Purpose:} Digital signature algorithm for signing public keys.
+\begin{itemize}
+    \item \textbf{Key Generation:} 
+    \begin{align*}
+        & \text{Alice:} & & \text{Bob:} \\
+        & \text{Sign(IKA, nIA)} & & \text{Sign(IKB, nIB)}
+    \end{align*}
+\end{itemize}
+
+\subsection{Double Ratchet}
+\textbf{Purpose:} Key management algorithm for forward secrecy and message encryption.
+\begin{itemize}
+    \item \textbf{Session Key Derivation:} 
+    \begin{itemize}
+        \item A new key is derived for each message exchange using a key schedule algorithm.
+        \item Previous session keys are combined with new key material to derive subsequent session keys.
+    \end{itemize}
+\end{itemize}
+
+\section{Registration Process}
+
+\subsection{Alice Registration}
+\textbf{Key Generation:}
+\begin{itemize}
+    \item Alice generates key material including:
+    \begin{itemize}
+        \item Identity key pair (IKA, nIA)
+        \item Signed prekey pair (SPKA, nSP A)
+        \item Prekey signature: Sig(IKA, Encode(SPKA))
+        \item One-time prekeys (OPK1A, OPK2A, OPK3A, ...)
+    \end{itemize}
+\end{itemize}
+
+\textbf{Packet Transmission:} Alice uploads the generated key material (PacketA) to the server.
+
+\subsection{Bob Registration}
+\textbf{Key Generation:}
+\begin{itemize}
+    \item Bob follows a similar process as Alice, generating his own key material (PacketB).
+    \item Key material includes Bob's identity key pair, signed prekey pair, prekey signature, and one-time prekeys.
+\end{itemize}
+
+\textbf{Packet Transmission:} Bob uploads his key material (PacketB) to the server.
+
+\section*{Conclusion}
+The Signal Protocol employs a combination of cryptographic techniques such as key agreement, digital signatures, and key management to ensure secure and private messaging. Through rigorous key generation, signing, and encryption procedures, it establishes and maintains secure communication channels between users, offering a high level of privacy and security.
+
+\section{Diffie-Hellman Computation of Alice}
+\subsection{1. Ephemeral Key Generation}
+Alice generates an ephemeral key \( EKA \), which is a temporary key used for the current session.
+
+\subsection{2. DH1 Calculation}
+Alice computes \( DH1 = DH(IKA, SPKB) \), where \( IKA \) is Alice's identity key and \( SPKB \) is Bob's signed prekey. \( DH1 \) represents the shared secret between Alice's identity key and Bob's signed prekey.
+
+\subsection{3. DH2 Calculation}
+Alice computes \( DH2 = DH(EKA, IKB) \), where \( IKB \) is Bob's identity key. \( DH2 \) represents the shared secret between Alice's ephemeral key and Bob's identity key.
+
+\subsection{4. DH3 Calculation}
+Alice computes \( DH3 = DH(EKA, SPKB) \). \( DH3 \) represents the shared secret between Alice's ephemeral key and Bob's signed prekey.
+
+\subsection{5. One-time Prekey Check (Optional)}
+\begin{itemize}
+    \item If Bob's key bundle contains a one-time prekey:
+    \begin{itemize}
+        \item \( DH4 = DH(EKA, OPKB) \) is computed.
+        \item \( SKA \) (Alice's shared secret key) is derived using a Key Derivation Function (KDF) with inputs \( DH1 || DH2 || DH3 || DH4 \).
+    \end{itemize}
+    \item Otherwise, \( SKA \) is derived using \( DH1 || DH2 || DH3 \).
+\end{itemize}
+
+\section{Initial Encryption in Alice’s Side}
+\subsection{1. Associated Data (AD) Computation}
+Alice constructs associated data \( AD = \text{Encode}(IKA) || \text{Encode}(IKB) \), representing the identities of both Alice and Bob.
+
+\subsection{2. Encryption}
+Alice encrypts an initial message using \( AD \), \( SKA \), and generates the corresponding initial ciphertext. The ciphertext along with \( IKA \), \( EKA \), and Bob's prekeys are sent to the server.
+
+\subsection{Initial Ciphertext Decryption in Bob’s Side}
+\subsubsection{1. Key Recovery}
+Bob retrieves \( IKA \) and \( EKA \) from the received data.
+
+\subsubsection{s DH and KDF}
+Bob performs Diffie-Hellman and Key Derivation Function (KDF) using the shared secret derived from his own keys.
+
+\subsubsection{Shared Key Construction}
+Due to the properties of DH and KDF, Bob's derived shared key \( SKB \) matches Alice's derived shared key \( SKA \).
+
+\subsubsection{Associated Data Reconstruction}
+Bob constructs associated data \( AD = \text{Encode}(IKA) || \text{Encode}(IKB) \) using the recovered identity keys.
+
+\subsubsection{ Decryption}
+Bob decrypts the initial ciphertext using \( SKB \) and \( AD \) to recover the original message.
+
+\section{Zero Knowledge Proof using DLP}
+Both prover and verifier agreed on $Z^*_p$ where $p$ is prime. Prover wants to prove the knowledge of $x$ satisfying $y = g^x$ without revealing $x$.
+
+\subsection{Prover}
+\begin{enumerate}
+    \item \textbf{Agreement on Parameters:} Both parties agree on a prime number $p$ and a generator $g$ in the group $Z^*_p$, where $p$ is prime.
+    \item \textbf{Knowledge Proof:} Prover wants to prove knowledge of an exponent $x$ satisfying $y = g^x \mod p$, where $y$ is known to both parties.
+    \item \textbf{Computations:}
+    \begin{enumerate}
+        \item Prover computes $y = g^x \mod p$ and sends $y$ to the verifier.
+        \item Prover selects a random value $r$ from the interval $[0, p-1]$.
+        \item Prover computes $m = g^r \mod p$ and sends $m$ to the verifier.
+    \end{enumerate}
+    \item \textbf{Challenge:} Verifier chooses a random challenge $e$ from the interval $[0, p-1]$.
+    \item \textbf{Response:} Prover computes $s = ex + r \mod p$ and sends $s$ to the verifier.
+\end{enumerate}
+
+\subsection*{Verifier}
+\begin{enumerate}
+    \item \textbf{Verification:} Verifier computes $g^s \mod p$ and $(y \cdot m^e) \mod p$. If $g^s \mod p = (y \cdot m^e) \mod p$, the proof is considered valid.
+\end{enumerate}
+
+\subsection{Explanation}
+\begin{itemize}
+    \item The prover demonstrates knowledge of $x$ by providing evidence that $y$ is the result of raising $g$ to the power of $x$, without revealing $x$ itself.
+    \item The challenge $e$ ensures that the prover cannot precompute $s$, as $e$ is chosen by the verifier after seeing the prover's initial message.
+    \item The verification step ensures that $s$ is calculated correctly based on the randomness introduced by both $r$ and $e$, and that it corresponds to the claimed exponent $x$.
+\end{itemize}
+
+This protocol demonstrates zero-knowledge because the verifier is convinced of the prover's knowledge of $x$ without learning any information about $x$ itself.
+
+\section{RC4 Stream Cipher}
+
+RC4 (Rivest Cipher 4) is a stream cipher algorithm used for encryption and decryption of data. It was developed by Ronald Rivest in 1987 and gained popularity due to its simplicity and efficiency. The RC4 algorithm is widely used in various protocols and applications, including SSL/TLS, WEP, and Bluetooth.
+
+\subsection{RC4 Stream Cipher Overview}
+
+\subsubsection{Key Scheduling Algorithm (KSA)}
+
+\begin{itemize}
+    \item \textbf{Data Structure:} RC4 uses an S-Box, denoted as \( S \), consisting of \( N \) elements, where \( N = 2^8 \).
+    \item \textbf{Initialization:} Initially, the S-Box is initialized with values from 0 to \( N-1 \) (i.e., \( S[i] = i \)).
+    \item \textbf{Scrambling:} During key scheduling, the S-Box is scrambled based on the secret key provided.
+    \begin{itemize}
+        \item For each iteration from 0 to \( N-1 \):
+        \begin{itemize}
+            \item Update the variable \( j \) using the formula: \( j = (j + S[i] + K[i]) \mod N \), where \( K \) is the key array.
+            \item Swap the values of \( S[i] \) and \( S[j] \).
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Pseudo-Random Generation Algorithm (PRGA)}
+
+\begin{itemize}
+    \item \textbf{Initialization:} Initialize two pointers \( i \) and \( j \) to 0.
+    \item \textbf{Keystream Generation Loop:} Generate a pseudo-random keystream indefinitely.
+    \begin{itemize}
+        \item Increment \( i \) by 1.
+        \item Update \( j \) by adding \( S[i] \) to it.
+        \item Swap the values of \( S[i] \) and \( S[j] \).
+        \item Calculate \( t = S[i] + S[j] \).
+        \item Output the keystream byte \( z = S[t] \).
+    \end{itemize}
+\end{itemize}
+
+\subsection{Explanation}
+
+\begin{itemize}
+    \item \textbf{Key Scheduling:} The KSA initializes the S-Box based on the secret key provided, ensuring that each element of the S-Box is influenced by the key.
+    \item \textbf{Pseudo-Random Generation:} The PRGA generates a pseudo-random keystream by iteratively shuffling the S-Box and generating output bytes. The output byte \( z \) is produced by selecting an element from the S-Box based on the current state of \( S \).
+    \item \textbf{Security:} The security of RC4 relies on the unpredictability of the keystream generated. However, RC4 has been subject to vulnerabilities, such as biases in the initial keystream bytes, which can weaken its security.
+\end{itemize}
+
+RC4 is a fast and simple stream cipher, but its use has been deprecated in many applications due to vulnerabilities discovered over time. Despite this, it remains a crucial historical cipher and is still used in some legacy systems.
+
+\end{document}
